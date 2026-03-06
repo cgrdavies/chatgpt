@@ -326,16 +326,13 @@ class ChatGPT:
                         
                         result.append(data.get('v'))
                         
-                    elif data.get('o') == 'patch' and isinstance(data.get('v'), list):
-                        
+                    elif isinstance(data.get('v'), list):
+
                         for op in data.get('v'):
-                            
+
                             if op.get('o') == 'append' and op.get('p') == '/message/content/parts/0':
-                                
+
                                 result.append(op.get('v'))
-                                
-                    elif 'v' in data and isinstance(data['v'], str):
-                        result.append(data['v'])
                         
         return (''.join(result)).replace("\n", "")
         
@@ -473,7 +470,7 @@ class ChatGPT:
             Log.Error(conduit_request.text)
             return None
     
-    def start_conversation(self, message: str) -> None:
+    def start_conversation(self, message: str, search: bool = False) -> None:
         
         self._get_tokens()
         conduit_token: str = self.get_conduit()
@@ -519,7 +516,7 @@ class ChatGPT:
                 },
             ],
             'parent_message_id': 'client-created-root',
-            'model': 'auto',
+            'model': 'gpt-5-3' if search else 'auto',
             'timezone_offset_min': self.timezone_offset,
             'timezone': self.ip_info[5],
             'history_and_training_disabled': True,
@@ -527,7 +524,7 @@ class ChatGPT:
                 'kind': 'primary_assistant',
             },
             'enable_message_followups': True,
-            'system_hints': [],
+            'system_hints': ['search'] if search else [],
             'supports_buffering': True,
             'supported_encodings': [
                 'v1',
@@ -544,14 +541,14 @@ class ChatGPT:
             'paragen_cot_summary_display_override': 'allow',
             'force_parallel_switch': 'auto',
         }
-        
+
         conversation_request: requests.models.Response = self.session.post('https://chatgpt.com/backend-anon/f/conversation', json=conversation_data)
         self.session.cookies.update(conversation_request.cookies)
-        
+
         if 'Unusual activity' in conversation_request.text:
             Log.Error("Your IP got flagged by chatgpt, retry with a new IP")
             exit(conversation_request.status_code)
-        
+
         self.data["conversation_id"] = Utils.between(conversation_request.text, '"conversation_id": "', '"')
         self.data["parent_message_id"] = Utils.between(conversation_request.text, '"message_id": "', '"')
         self.response = self._parse_event_stream(conversation_request.text)
@@ -808,11 +805,11 @@ class ChatGPT:
         
         self.response = self._parse_event_stream(conversation_request.text)
     
-    def ask_question(self, message: str, image: str = None) -> str:
-        
+    def ask_question(self, message: str, image: str = None, search: bool = False) -> str:
+
         if not image:
-            self.start_conversation(message)
+            self.start_conversation(message, search=search)
         else:
             self.start_with_image(message, image)
-        
+
         return self.response
