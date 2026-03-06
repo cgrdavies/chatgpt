@@ -16,15 +16,16 @@ from io import BytesIO
 class ChatGPT:
     
     
-    def __init__(self, proxy: str=None, cookies: dict = None) -> Any:
+    def __init__(self, proxy: str=None, proxy_pool: list=None, cookies: dict = None) -> Any:
         self.session: requests.session.Session = requests.Session(impersonate="chrome133a")
         self.session.headers = Headers.DEFAULT
         self.data: dict = {}
-        
-        if proxy:
-            
+        self.proxy_pool: list = proxy_pool
+
+        selected = choice(proxy_pool) if proxy_pool else proxy
+        if selected:
             self.session.proxies = {
-                "all": proxy # format http://user:pass@ip:port
+                "all": selected
             }
             
         self.ip_info: list = IP_Info.fetch_info(self.session)
