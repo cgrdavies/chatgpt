@@ -14,7 +14,7 @@ class IP_Info:
         
         ip_infos.append(Utils.between(info_request.text, '<td><b class="ip">', '<'))
         ip_infos.append(Utils.between(info_request.text, '<td class="city">', '<'))
-        ip_infos.append(Utils.between(info_request.text, '<td><span class="region_name">', '<'))
+        ip_infos.append(Utils.between(info_request.text, '<td class="region_name">', '<'))
         ip_infos.append(Utils.between(info_request.text, '<td class="lat">', '<'))
         ip_infos.append(Utils.between(info_request.text, '<td class="lng">', '<'))
         
