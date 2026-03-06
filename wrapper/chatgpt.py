@@ -8,6 +8,7 @@ from json         import loads
 from time         import time
 from typing       import Any
 from base64       import b64decode
+import re
 from PIL import Image
 from io import BytesIO
 
@@ -334,7 +335,15 @@ class ChatGPT:
 
                                 result.append(op.get('v'))
                         
-        return (''.join(result)).replace("\n", "")
+        text = ''.join(result)
+
+        # Strip search markup artifacts from responses (uses \ue202/\ue201 delimiters)
+        text = re.sub(r'products\ue202\{.*?\}', '', text)
+        text = re.sub(r'entity\ue202\["product","([^"]*)"\]\ue201', r'\1', text)
+        text = re.sub(r'entity\ue202\["product","([^"]*)"\]', r'\1', text)
+        text = re.sub(r'cite\ue202turn\d+search\d+(?:\ue202turn\d+search\d+)*', '', text)
+
+        return text.replace("\n", "")
         
     def _fetch_cookies(self) -> None:
         
@@ -540,6 +549,7 @@ class ChatGPT:
             },
             'paragen_cot_summary_display_override': 'allow',
             'force_parallel_switch': 'auto',
+            'websearch_preference': 'always' if search else 'auto',
         }
 
         conversation_request: requests.models.Response = self.session.post('https://chatgpt.com/backend-anon/f/conversation', json=conversation_data)
