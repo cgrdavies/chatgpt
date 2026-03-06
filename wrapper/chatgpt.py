@@ -337,11 +337,11 @@ class ChatGPT:
                         
         text = ''.join(result)
 
-        # Strip search markup artifacts from responses (uses \ue202/\ue201 delimiters)
+        # Strip search markup artifacts (uses \ue202/\ue201 private-use delimiters)
         text = re.sub(r'products\ue202\{.*?\}', '', text)
-        text = re.sub(r'entity\ue202\["product","([^"]*)"\]\ue201', r'\1', text)
-        text = re.sub(r'entity\ue202\["product","([^"]*)"\]', r'\1', text)
-        text = re.sub(r'cite\ue202turn\d+search\d+(?:\ue202turn\d+search\d+)*', '', text)
+        text = re.sub(r'entity\ue202\["[^"]*","([^"]*)"\](?:\ue201)?', r'\1', text)
+        text = re.sub(r'cite\ue202[^\s]*', '', text)
+        text = re.sub(r'[\ue200-\ue2ff]', '', text)
 
         return text.replace("\n", "")
         
